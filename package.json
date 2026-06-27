@@ -15,6 +15,7 @@
     "start": "npm run start --workspace backend",
     "start:frontend": "npm run start --workspace frontend",
     "start:pm2": "pm2-runtime ecosystem.config.cjs",
+    "start:pterodactyl": "npm run db:migrate && npm run db:seed && npm run build && npm start",
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "format": "prettier --write .",
     "test": "npm run test --workspace backend",
