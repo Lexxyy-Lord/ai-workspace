@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { Bot, Code2, FileCode2, Folder, History, KeyRound, Search, Settings, Shield, Terminal } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
@@ -11,6 +12,13 @@ const sampleFiles = [
   { name: 'backend/src/api/routes/chatRoutes.js', type: 'file' },
   { name: 'frontend/app/page.tsx', type: 'file' },
   { name: 'docker-compose.yml', type: 'file' },
+];
+
+const tabs: Array<{ key: string; icon: LucideIcon; label: string }> = [
+  { key: 'editor', icon: Code2, label: 'Editor' },
+  { key: 'chat', icon: Bot, label: 'AI Chat' },
+  { key: 'history', icon: History, label: 'History' },
+  { key: 'settings', icon: Settings, label: 'Settings' },
 ];
 
 const code = `module.exports = {
@@ -65,18 +73,13 @@ export function WorkspaceShell() {
 
       <section className="overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/70">
         <div className="flex items-center gap-2 border-b border-slate-800 p-3">
-          {[
-            ['editor', Code2, 'Editor'],
-            ['chat', Bot, 'AI Chat'],
-            ['history', History, 'History'],
-            ['settings', Settings, 'Settings'],
-          ].map(([key, Icon, label]) => (
+          {tabs.map(({ key, icon: Icon, label }) => (
             <button
-              key={String(key)}
-              onClick={() => setActiveTab(String(key))}
+              key={key}
+              onClick={() => setActiveTab(key)}
               className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold ${activeTab === key ? 'bg-blue-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}
             >
-              <Icon size={16} /> {String(label)}
+              <Icon size={16} /> {label}
             </button>
           ))}
         </div>
@@ -123,7 +126,7 @@ export function WorkspaceShell() {
   );
 }
 
-function Panel({ icon: Icon, title, text }: { icon: typeof Bot; title: string; text: string }) {
+function Panel({ icon: Icon, title, text }: { icon: LucideIcon; title: string; text: string }) {
   return (
     <div className="flex h-[560px] items-center justify-center p-8 text-center">
       <div className="max-w-md rounded-3xl border border-slate-800 bg-slate-950 p-8">
