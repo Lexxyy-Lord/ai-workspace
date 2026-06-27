@@ -5,10 +5,11 @@ import { AppError } from '../utils/appError.js';
 export const createProvider = (settings = {}) => {
   const provider = settings.provider || env.DEFAULT_AI_PROVIDER;
 
-  if (['freemodel', 'openai-compatible', 'openrouter'].includes(provider)) {
+  if (provider === 'freemodel' || provider === 'openai-compatible' || provider === 'openrouter') {
     return new OpenAiCompatibleProvider({
       apiKey: settings.apiKey || env.FREEMODEL_API_KEY,
       baseUrl: settings.baseUrl || env.FREEMODEL_BASE_URL,
+      fallbackBaseUrls: settings.fallbackBaseUrls || env.FREEMODEL_FALLBACK_BASE_URLS,
       chatPath: settings.chatPath || env.FREEMODEL_CHAT_PATH,
       modelsPath: settings.modelsPath || env.FREEMODEL_MODELS_PATH,
       authHeader: settings.authHeader || env.FREEMODEL_AUTH_HEADER,
@@ -18,9 +19,5 @@ export const createProvider = (settings = {}) => {
     });
   }
 
-  if (['anthropic', 'gemini'].includes(provider)) {
-    throw new AppError(`${provider} provider belum aktif di tahap ini, tetapi interface sudah disiapkan.`, 501, 'PROVIDER_NOT_IMPLEMENTED');
-  }
-
-  throw new AppError(`Provider ${provider} tidak dikenal.`, 400, 'UNKNOWN_PROVIDER');
+  throw new AppError('Unknown or unavailable provider.', 400, 'UNKNOWN_PROVIDER');
 };
