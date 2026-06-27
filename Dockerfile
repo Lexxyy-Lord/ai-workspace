@@ -18,15 +18,12 @@ FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN apt-get update && apt-get install -y --no-install-recommends tini && rm -rf /var/lib/apt/lists/*
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/ecosystem.config.cjs ./ecosystem.config.cjs
 COPY --from=builder /app/backend ./backend
-COPY --from=builder /app/frontend/.next/standalone ./frontend-standalone
-COPY --from=builder /app/frontend/.next/static ./frontend-standalone/frontend/.next/static
-COPY --from=builder /app/frontend/public ./frontend-standalone/frontend/public
+COPY --from=builder /app/frontend ./frontend
 COPY --from=builder /app/node_modules ./node_modules
 RUN mkdir -p /app/data/workspaces /app/data/uploads && chown -R node:node /app
 USER node
 EXPOSE 3000 3001
-ENTRYPOINT ["tini", "--"]
-CMD ["npm", "start"]
+CMD ["npm", "run", "start:pm2"]
