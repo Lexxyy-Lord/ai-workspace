@@ -1,3 +1,5 @@
+import { existsSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import compression from 'compression';
 import cors from 'cors';
 import express from 'express';
@@ -12,11 +14,20 @@ import { chatRoutes } from './routes/chatRoutes.js';
 import { healthRoutes } from './routes/healthRoutes.js';
 import { workspaceRoutes } from './routes/workspaceRoutes.js';
 
+const frontendDistDir = resolve(process.cwd(), process.env.FRONTEND_DIST_DIR || './frontend/out');
+const singlePortMode = process.env.SINGLE_PORT_MODE !== 'false';
+
 const isAllowedOrigin = (origin) => {
   if (!origin) return true;
   if (env.CORS_ORIGINS.includes('*')) return true;
   return env.CORS_ORIGINS.includes(origin);
 };
+
+const shouldServeFrontend = (path) =>
+  singlePortMode &&
+  !path.startsWith('/api') &&
+  !path.startsWith('/health') &&
+  !path.startsWith('/socket.io');
 
 export const createApp = () => {
   const app = express();
@@ -48,6 +59,14 @@ export const createApp = () => {
   app.use('/api/auth', authRoutes);
   app.use('/api/chat', chatRoutes);
   app.use('/api/workspaces', workspaceRoutes);
+
+  if (singlePortMode && existsSync(frontendDistDir)) {
+    app.use(express.static(frontendDistDir, { index: 'index.html' }));
+    app.get('*', (req, res, next) => {
+      if (!shouldServeFrontend(req.path)) return next();
+      return res.sendFile(join(frontendDistDir, 'index.html'));
+    });
+  }
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -1,23 +1,14 @@
 module.exports = {
   apps: [
     {
-      name: 'ai-workspace-backend',
+      name: 'ai-workspace-single-port',
       cwd: './backend',
       script: 'src/server.js',
       interpreter: 'node',
       env: {
         NODE_ENV: process.env.NODE_ENV || 'production',
-      },
-      max_memory_restart: '512M',
-    },
-    {
-      name: 'ai-workspace-frontend',
-      cwd: './frontend',
-      script: 'node_modules/next/dist/bin/next',
-      args: 'start -H 0.0.0.0 -p 3001',
-      interpreter: 'node',
-      env: {
-        NODE_ENV: process.env.NODE_ENV || 'production',
+        SINGLE_PORT_MODE: process.env.SINGLE_PORT_MODE || 'true',
+        FRONTEND_DIST_DIR: process.env.FRONTEND_DIST_DIR || '../frontend/out',
       },
       max_memory_restart: '512M',
     },
