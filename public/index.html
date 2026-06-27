@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Workspace</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Node.js AI Workspace</p>
+          <h1 id="app-title">AI Workspace</h1>
+          <p id="app-description" class="description">
+            Workspace AI profesional dengan konfigurasi penuh melalui file .env.
+          </p>
+        </div>
+        <span id="provider-status" class="status">Memuat konfigurasi...</span>
+      </section>
+
+      <section class="workspace" aria-label="AI chat workspace">
+        <aside class="panel settings-panel">
+          <h2>Pengaturan</h2>
+          <label for="model">Model</label>
+          <input id="model" name="model" autocomplete="off" />
+
+          <label for="temperature">Temperature</label>
+          <input id="temperature" name="temperature" type="number" min="0" max="2" step="0.1" />
+
+          <label for="maxTokens">Max tokens</label>
+          <input id="maxTokens" name="maxTokens" type="number" min="1" max="32000" step="1" />
+
+          <label for="system">System prompt</label>
+          <textarea id="system" name="system" rows="7"></textarea>
+
+          <button id="clear-chat" type="button" class="secondary">Bersihkan Chat</button>
+        </aside>
+
+        <section class="panel chat-panel">
+          <div id="messages" class="messages" aria-live="polite"></div>
+          <form id="chat-form" class="composer">
+            <textarea
+              id="message"
+              name="message"
+              rows="3"
+              placeholder="Tulis pesan untuk AI..."
+              required
+            ></textarea>
+            <button id="send-button" type="submit">Kirim</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
