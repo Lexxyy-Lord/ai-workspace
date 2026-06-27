@@ -3,6 +3,15 @@ import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
 
+process.env.FREEMODEL_API_KEY ||= process.env.FREEEMODEL_API_KEY || process.env.OPENAI_API_KEY || '';
+process.env.FREEMODEL_BASE_URL ||= process.env.FREEEMODEL_BASE_URL || process.env.OPENAI_BASE_URL || 'https://api.freemodel.dev/v1';
+process.env.FREEMODEL_CHAT_PATH ||= process.env.FREEEMODEL_CHAT_PATH || process.env.OPENAI_CHAT_PATH || '/chat/completions';
+process.env.FREEMODEL_MODELS_PATH ||= process.env.FREEEMODEL_MODELS_PATH || process.env.OPENAI_MODELS_PATH || '/models';
+process.env.FREEMODEL_AUTH_HEADER ||= process.env.FREEEMODEL_AUTH_HEADER || 'Authorization';
+process.env.FREEMODEL_AUTH_PREFIX ??= process.env.FREEEMODEL_AUTH_PREFIX ?? 'Bearer';
+process.env.FREEMODEL_EXTRA_HEADERS ||= process.env.FREEEMODEL_EXTRA_HEADERS || '{}';
+process.env.FREEMODEL_FALLBACK_BASE_URLS ||= process.env.FREEEMODEL_FALLBACK_BASE_URLS || 'https://freemodel.dev/api/v1,https://api.freeemodel.dev/v1,https://freeemodel.dev/api/v1';
+
 const jsonObject = z
   .string()
   .default('{}')
@@ -61,12 +70,13 @@ const schema = z.object({
   DEFAULT_SYSTEM_PROMPT: z.string().default('You are AI Workspace, a professional coding assistant.'),
 
   FREEMODEL_API_KEY: z.string().default(''),
-  FREEMODEL_BASE_URL: z.string().url().default('https://freemodel.dev/v1'),
+  FREEMODEL_BASE_URL: z.string().url().default('https://api.freemodel.dev/v1'),
   FREEMODEL_CHAT_PATH: z.string().min(1).default('/chat/completions'),
   FREEMODEL_MODELS_PATH: z.string().min(1).default('/models'),
   FREEMODEL_AUTH_HEADER: z.string().min(1).default('Authorization'),
   FREEMODEL_AUTH_PREFIX: z.string().default('Bearer'),
   FREEMODEL_EXTRA_HEADERS: jsonObject,
+  FREEMODEL_FALLBACK_BASE_URLS: csv.default('https://freemodel.dev/api/v1,https://api.freeemodel.dev/v1,https://freeemodel.dev/api/v1'),
   PROVIDER_TIMEOUT_MS: z.coerce.number().int().positive().default(60000),
 });
 

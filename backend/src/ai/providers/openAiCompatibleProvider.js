@@ -13,6 +13,8 @@ const parseBody = async (response) => {
   }
 };
 
+const unique = (items) => [...new Set(items.filter(Boolean))];
+
 export class OpenAiCompatibleProvider {
   constructor(config) {
     this.config = config;
@@ -28,45 +30,70 @@ export class OpenAiCompatibleProvider {
     };
   }
 
+  baseUrls() {
+    return unique([this.config.baseUrl, ...(this.config.fallbackBaseUrls || [])]);
+  }
+
   async request(path, options = {}) {
     if (!this.config.apiKey) {
       throw new ProviderError('API key provider belum dikonfigurasi.', 400);
     }
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    const attempted = [];
+    let lastError;
 
-    try {
-      const response = await fetch(joinUrl(this.config.baseUrl, path), {
-        method: options.method || 'GET',
-        headers: this.headers(),
-        body: options.body ? JSON.stringify(options.body) : undefined,
-        signal: controller.signal,
-      });
-      const body = await parseBody(response);
+    for (const baseUrl of this.baseUrls()) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), this.config.timeoutMs);
+      const url = joinUrl(baseUrl, path);
+      attempted.push(url);
 
-      if (!response.ok) {
-        throw new ProviderError(
+      try {
+        const response = await fetch(url, {
+          method: options.method || 'GET',
+          headers: this.headers(),
+          body: options.body ? JSON.stringify(options.body) : undefined,
+          signal: controller.signal,
+        });
+        const body = await parseBody(response);
+
+        if (response.ok) {
+          return body;
+        }
+
+        lastError = new ProviderError(
           body?.error?.message || body?.message || `Provider HTTP ${response.status}`,
           response.status >= 500 ? 502 : response.status,
-          body,
+          { providerBody: body, attempted },
         );
-      }
 
-      return body;
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        throw new ProviderError('Request AI provider timeout.', 504);
-      }
+        if (response.status === 404) {
+          continue;
+        }
 
-      if (error instanceof ProviderError) {
-        throw error;
-      }
+        throw lastError;
+      } catch (error) {
+        if (error.name === 'AbortError') {
+          lastError = new ProviderError('Request AI provider timeout.', 504, { attempted });
+          continue;
+        }
 
-      throw new ProviderError('Gagal menghubungi AI provider.', 502, { message: error.message });
-    } finally {
-      clearTimeout(timeout);
+        if (error instanceof ProviderError) {
+          lastError = error;
+          if (error.statusCode === 404) continue;
+          throw error;
+        }
+
+        lastError = new ProviderError('Gagal menghubungi AI provider.', 502, {
+          message: error.message,
+          attempted,
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
     }
+
+    throw lastError || new ProviderError('Gagal menghubungi AI provider.', 502, { attempted });
   }
 
   listModels() {
