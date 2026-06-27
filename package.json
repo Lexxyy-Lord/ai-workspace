@@ -14,6 +14,7 @@
     "build": "npm run build --workspace frontend",
     "start": "npm run start --workspace backend",
     "start:frontend": "npm run start --workspace frontend",
+    "start:pm2": "pm2-runtime ecosystem.config.cjs",
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "format": "prettier --write .",
     "test": "npm run test --workspace backend",
@@ -34,6 +35,9 @@
   "engines": {
     "node": ">=22.0.0",
     "npm": ">=10.0.0"
+  },
+  "dependencies": {
+    "pm2": "^5.4.3"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",
