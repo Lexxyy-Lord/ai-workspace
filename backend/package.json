@@ -5,12 +5,12 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "dev": "node --env-file=../.env --watch src/server.js",
-    "start": "node --env-file=../.env src/server.js",
-    "db:migrate": "node --env-file=../.env src/database/migrate.js",
-    "db:seed": "node --env-file=../.env src/database/seed.js",
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js",
+    "db:migrate": "node src/database/migrate.js",
+    "db:seed": "node src/database/seed.js",
     "lint": "eslint .",
-    "test": "node --env-file=../.env --test"
+    "test": "node --test"
   },
   "engines": {
     "node": ">=22.0.0"
