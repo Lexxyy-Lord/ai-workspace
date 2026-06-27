@@ -12,16 +12,16 @@
     "dev:backend": "npm run dev --workspace backend",
     "dev:frontend": "npm run dev --workspace frontend",
     "build": "npm run build --workspace frontend",
-    "start": "npm run start:pterodactyl",
-    "start:backend": "npm run start --workspace backend",
+    "start": "node pterodactyl.mjs",
+    "start:backend": "node scripts/start-backend.mjs",
     "start:frontend": "npm run start --workspace frontend",
     "start:pm2": "pm2-runtime ecosystem.config.cjs",
-    "start:pterodactyl": "npm run db:migrate && npm run db:seed && npm run build && npm run start:backend",
+    "start:pterodactyl": "node pterodactyl.mjs",
     "lint": "npm run lint --workspace backend && npm run lint --workspace frontend",
     "format": "prettier --write .",
     "test": "npm run test --workspace backend",
-    "db:migrate": "npm run db:migrate --workspace backend",
-    "db:seed": "npm run db:seed --workspace backend"
+    "db:migrate": "node scripts/migrate.mjs",
+    "db:seed": "node scripts/seed.mjs"
   },
   "keywords": [
     "ai",
