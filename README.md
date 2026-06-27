@@ -1,167 +1,202 @@
 # AI Workspace
 
-AI Workspace adalah aplikasi Node.js profesional untuk menjalankan workspace chat AI berbasis web. API key provider disimpan aman di backend dan seluruh konfigurasi utama dapat diatur lewat file `.env` tanpa perlu mengubah source code.
+AI Workspace adalah aplikasi production-ready berbasis monorepo untuk pengalaman kerja seperti gabungan Claude Code, Cursor, Windsurf, Open WebUI, dan VS Code Explorer.
 
-## Fitur
+Backend memakai Node.js 22, Express, Socket.IO, JWT, SQLite, Multer, Archiver, dan Adm-Zip. Frontend memakai Next.js, React, TailwindCSS, Monaco Editor, React Query, dan Zustand.
 
-- Backend Express.js dengan struktur modular.
-- UI chat responsif di folder `public/`.
-- Integrasi provider `freeemodel.dev` melalui adapter OpenAI-compatible.
-- Konfigurasi penuh lewat `.env`.
-- Validasi environment dengan Zod.
-- Logging terstruktur dengan Pino.
-- Middleware keamanan dasar memakai Helmet dan CORS.
-- Endpoint health check, konfigurasi publik, daftar model, dan chat completion.
-- ESLint, Prettier, dan test bawaan Node.js.
+## Status
 
-## Struktur folder
+Roadmap resmi ada di GitHub Issue #2. Pengembangan dilakukan bertahap agar setiap tahap tetap bisa dijalankan.
+
+Tahap saat ini menyediakan:
+
+- Monorepo `backend/` dan `frontend/`.
+- Backend Express modular dengan security baseline.
+- SQLite schema untuk `users`, `workspaces`, `chat_history`, `settings`, `api_keys`, `sessions`, `logs`, dan `prompts`.
+- JWT login, refresh session, admin seed, dan role middleware.
+- Workspace manager API untuk create, rename, delete, tree, read/write file, create/rename/delete entry, upload ZIP, dan download ZIP.
+- OpenAI-compatible provider abstraction dengan FreeModel.dev sebagai default.
+- Socket.IO channel untuk workspace event.
+- Next.js dashboard shell dengan Explorer, Monaco Editor, AI Chat, History, Settings, dan status panel.
+- Dockerfile, Docker Compose, PM2 ecosystem, health check, ESLint, Prettier, dan test health endpoint.
+
+## Struktur
 
 ```text
 .
-├── public/
-│   ├── app.js
-│   ├── index.html
-│   └── styles.css
-├── src/
-│   ├── config/
-│   │   ├── env.js
-│   │   └── logger.js
-│   ├── middleware/
-│   │   └── errorHandler.js
-│   ├── providers/
-│   │   └── freeemodelClient.js
-│   ├── routes/
-│   │   ├── chatRoutes.js
-│   │   ├── configRoutes.js
-│   │   └── healthRoutes.js
-│   ├── services/
-│   │   └── chatService.js
-│   ├── validators/
-│   │   └── chatValidator.js
-│   └── server.js
-├── test/
-│   └── chatService.test.js
+├── backend/
+│   ├── src/
+│   │   ├── ai/
+│   │   ├── api/
+│   │   ├── config/
+│   │   ├── database/
+│   │   ├── middleware/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── websocket/
+│   │   └── workspace/
+│   └── test/
+├── frontend/
+│   ├── app/
+│   └── components/
+├── data/
+├── Dockerfile
+├── docker-compose.yml
+├── ecosystem.config.cjs
 ├── .env.example
-├── .gitignore
-├── eslint.config.js
-├── package.json
-└── README.md
+└── package.json
 ```
 
-## Menjalankan lokal
+## Instalasi Lokal
 
-Pastikan memakai Node.js versi 20 atau lebih baru.
+Syarat:
+
+- Node.js 22+
+- npm 10+
 
 ```bash
 git clone https://github.com/Lexxyy-Lord/ai-workspace.git
 cd ai-workspace
 npm install
 cp .env.example .env
+npm run db:migrate
+npm run db:seed
 npm run dev
 ```
 
-Buka:
+Frontend berjalan di `http://localhost:3001`.
+Backend health check ada di `http://localhost:3000/health`.
 
-```text
-http://localhost:3000
-```
+## Konfigurasi FreeModel.dev
 
-## Konfigurasi `.env`
-
-Isi API key Anda di file `.env` lokal:
+Isi di `.env`:
 
 ```env
-FREEEMODEL_API_KEY=isi_api_key_anda
+FREEMODEL_API_KEY=isi_api_key_anda
+FREEMODEL_BASE_URL=https://freemodel.dev/v1
+FREEMODEL_CHAT_PATH=/chat/completions
+FREEMODEL_MODELS_PATH=/models
+FREEMODEL_AUTH_HEADER=Authorization
+FREEMODEL_AUTH_PREFIX=Bearer
+DEFAULT_AI_PROVIDER=freemodel
+DEFAULT_AI_MODEL=gpt-4o-mini
 ```
 
-Konfigurasi penting lain:
+Jika provider memakai header lain:
 
 ```env
-PORT=3000
-CORS_ORIGIN=*
-FREEEMODEL_BASE_URL=https://freeemodel.dev/api/v1
-FREEEMODEL_CHAT_PATH=/chat/completions
-FREEEMODEL_MODELS_PATH=/models
-FREEEMODEL_MODEL=freeemodel-default
-FREEEMODEL_TIMEOUT_MS=60000
-FREEEMODEL_AUTH_HEADER=Authorization
-FREEEMODEL_AUTH_PREFIX=Bearer
-FREEEMODEL_EXTRA_HEADERS={}
-AI_DEFAULT_TEMPERATURE=0.7
-AI_DEFAULT_MAX_TOKENS=1024
-AI_SYSTEM_PROMPT="You are a helpful, concise AI assistant."
-```
-
-Jika `freeemodel.dev` memakai header berbeda, ubah saja:
-
-```env
-FREEEMODEL_AUTH_HEADER=x-api-key
-FREEEMODEL_AUTH_PREFIX=
-```
-
-## Endpoint API
-
-### Health check
-
-```http
-GET /health
-```
-
-### Konfigurasi publik UI
-
-```http
-GET /api/config
-```
-
-Endpoint ini tidak membocorkan API key.
-
-### Daftar model
-
-```http
-GET /api/models
-```
-
-### Chat
-
-```http
-POST /api/chat
-Content-Type: application/json
-
-{
-  "message": "Halo, bantu saya buat ide konten.",
-  "model": "freeemodel-default",
-  "temperature": 0.7,
-  "maxTokens": 1024
-}
-```
-
-Contoh respons:
-
-```json
-{
-  "provider": "freeemodel.dev",
-  "model": "freeemodel-default",
-  "message": "...",
-  "raw": {}
-}
+FREEMODEL_AUTH_HEADER=x-api-key
+FREEMODEL_AUTH_PREFIX=
 ```
 
 ## Script
 
 ```bash
-npm run dev      # Jalankan server development dengan watch mode
-npm start        # Jalankan server production
-npm run lint     # Cek kualitas kode
-npm run format   # Format kode
-npm test         # Jalankan test
+npm run dev
+npm run dev:backend
+npm run dev:frontend
+npm run build
+npm start
+npm run start:frontend
+npm run start:pm2
+npm run lint
+npm test
+npm run db:migrate
+npm run db:seed
 ```
 
-## Catatan keamanan
+## Deploy Docker
 
-- Jangan commit file `.env`.
-- API key hanya digunakan di backend.
-- Frontend hanya membaca konfigurasi publik dari `/api/config`.
-- Untuk production, set `NODE_ENV=production` dan batasi `CORS_ORIGIN` ke domain aplikasi Anda.
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+Port default:
+
+- Backend: `3000`
+- Frontend: `3001`
+
+## Deploy VPS Linux dengan PM2
+
+```bash
+git clone https://github.com/Lexxyy-Lord/ai-workspace.git
+cd ai-workspace
+npm install
+cp .env.example .env
+npm run build
+npm run db:migrate
+npm run db:seed
+npm run start:pm2
+```
+
+Gunakan reverse proxy:
+
+- `/api` dan `/health` ke backend port `3000`.
+- frontend ke port `3001`.
+
+## Deploy Pterodactyl Panel
+
+Startup command yang disarankan:
+
+```bash
+npm install && npm run db:migrate && npm run db:seed && npm run build && npm run start:pm2
+```
+
+Environment minimal:
+
+```env
+NODE_ENV=production
+API_HOST=0.0.0.0
+API_PORT={{SERVER_PORT}}
+PUBLIC_FRONTEND_URL=https://domain-anda
+CORS_ORIGINS=https://domain-anda
+FREEMODEL_API_KEY=isi_api_key_anda
+JWT_ACCESS_SECRET=ganti-dengan-random-panjang
+JWT_REFRESH_SECRET=ganti-dengan-random-panjang
+```
+
+Jika hanya satu port tersedia, jalankan backend di port Pterodactyl dan letakkan frontend di reverse proxy atau deploy terpisah.
+
+## Endpoint Utama
+
+```http
+GET /health
+POST /api/auth/login
+POST /api/auth/refresh
+GET /api/auth/me
+GET /api/workspaces
+POST /api/workspaces
+GET /api/workspaces/:workspaceId/tree
+GET /api/workspaces/:workspaceId/file?path=...
+PUT /api/workspaces/:workspaceId/file
+POST /api/workspaces/:workspaceId/upload-zip
+GET /api/workspaces/:workspaceId/download.zip
+POST /api/chat
+GET /api/chat/history
+GET /api/chat/models
+```
+
+## Security Baseline
+
+- Password di-hash dengan bcryptjs.
+- JWT access token dan refresh session.
+- Helmet, CORS allowlist, compression, rate limit.
+- Upload ZIP dibatasi ukuran dari `.env`.
+- File operation memakai safe workspace resolver.
+- Secret dan token disensor dari log.
+- `.env` diabaikan oleh Git.
+
+## BETABOTZ-MD2 Mode
+
+Mode ini diarahkan untuk project WhatsApp bot BETABOTZ-MD2:
+
+- CommonJS plugin.
+- `handler.help`, `handler.tags`, `handler.command` array.
+- `handler.register = true`.
+- Kompatibel Node.js 22 dan Baileys.
+- Error dikembalikan ke user.
+- React status `⏳`, `✅`, dan `⚠️`.
 
 ## Lisensi
 
