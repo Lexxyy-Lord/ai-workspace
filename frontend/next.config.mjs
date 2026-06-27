@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'export',
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
+  images: {
+    unoptimized: true,
   },
 };
 
